@@ -3,7 +3,9 @@
 
 >世上只有一种英雄主义，就是在认清生活真相之后依然热爱生活  By 加缪《西西弗神话》
 
-![img.png](img.png)
+<div style="text-align: center;">
+    <img src="img.png" alt="Image">
+</div>
 
 ### 目录
 
