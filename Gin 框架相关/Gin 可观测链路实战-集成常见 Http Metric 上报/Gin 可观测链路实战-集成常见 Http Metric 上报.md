@@ -168,7 +168,8 @@ package main
 import (  
     "net/http"  
   
-    "github.com/gin-gonic/gin")  
+    "github.com/gin-gonic/gin"
+)  
   
 func main() {  
     // Listen and Server in 0.0.0.0:8080  
@@ -197,55 +198,84 @@ go get "go.opentelemetry.io/otel/exporters/prometheus"
 
 
 ```go
-package main  
-  
-import (  
-    "context"  
-    "fmt"   
-     "github.com/prometheus/client_golang/prometheus/promhttp"       "go.opentelemetry.io/otel"  
-       "go.opentelemetry.io/otel/exporters/prometheus"    "go.opentelemetry.io/otel/sdk/metric" 
-          "go.opentelemetry.io/otel/sdk/resource"   
-           semconv "go.opentelemetry.io/otel/semconv/v1.25.0"  
-    "log"   
-     "net/http")  
-  
-func serveMetrics(prometheusPort int64) {  
-    http.Handle("/metrics", promhttp.Handler())  
-    if prometheusPort == 0 {  
-       prometheusPort = 2223  
-    }  
-    addr := fmt.Sprintf(":%d", prometheusPort)  
-    log.Printf("serving metrics at %s", addr)  
-    err := http.ListenAndServe(addr, nil)  
-    if err != nil {  
-       fmt.Printf("error serving http: %v", err)  
-       panic(err)  
-    }  
-}  
-  
-func initMetrics(prometheusPort int64, serviceName string) {  
-    metricExporter, err := prometheus.New()  
-    if err != nil {  
-       panic(err)  
-    }  
-  
-    res, err := resource.New(context.Background(),  
-       resource.WithAttributes(semconv.ServiceNameKey.String(serviceName)),  
-       resource.WithSchemaURL(semconv.SchemaURL),  
-    )  
-    if err != nil {  
-       panic(err)  
-    }  
-  
-    meterProvider := metric.NewMeterProvider(metric.WithReader(metricExporter), metric.WithResource(res))  
-    otel.SetMeterProvider(meterProvider)  
-    go serveMetrics(prometheusPort)  
-  
+package main
+
+import (
+	"context"
+	"fmt"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/prometheus"
+	"go.opentelemetry.io/otel/sdk/metric"
+	"go.opentelemetry.io/otel/sdk/resource"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
+	"log"
+	"net/http"
+)
+
+func serveMetrics(prometheusPort int64) {
+	http.Handle("/metrics", promhttp.Handler())
+	if prometheusPort == 0 {
+		prometheusPort = 2223
+	}
+	addr := fmt.Sprintf(":%d", prometheusPort)
+	log.Printf("serving metrics at %s", addr)
+	err := http.ListenAndServe(addr, nil)
+	if err != nil {
+		fmt.Printf("error serving http: %v", err)
+		panic(err)
+	}
 }
+
+func initMetrics(prometheusPort int64, serviceName string) {
+	metricExporter, err := prometheus.New()
+	if err != nil {
+		panic(err)
+	}
+
+	res, err := resource.New(context.Background(),
+		resource.WithAttributes(semconv.ServiceNameKey.String(serviceName)),
+		resource.WithSchemaURL(semconv.SchemaURL),
+	)
+	if err != nil {
+		panic(err)
+	}
+
+	meterProvider := metric.NewMeterProvider(metric.WithReader(metricExporter), metric.WithResource(res))
+	otel.SetMeterProvider(meterProvider)
+	go serveMetrics(prometheusPort)
+
+}
+
 ```
 
 
-在 gin 的入口启动 我们的 `provider`, 打开浏览器访问: `http://127.0.0.1:2233/metrics`
+在 gin 的入口启动 我们的 `provider`
+```go
+package main
+
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+)
+
+func main() {
+	// Listen and Server in 0.0.0.0:8080
+	r := gin.Default()
+	r.Use(HttpMetricMiddleware())
+	// 这里这里这里这里看这里
+	initMetrics(2233, "gin_metric_name")
+	// Ping test
+	r.GET("/ping", func(c *gin.Context) {
+		c.String(http.StatusOK, "pong")
+	})
+	r.Run(":8080")
+}
+
+```
+
+打开浏览器访问: `http://127.0.0.1:2233/metrics`
 
 有了, 有了，是个男 网页，恭喜各位, 是个男网页 🎉🎉🎉。哈哈哈哈, 当然这个时候还是没有什么值的，让我们访问下:  `http://127.0.0.1:8080/ping` 再刷新下 `http://127.0.0.1:2233/metrics` 不出意外的话应该 不出意外了，
 
