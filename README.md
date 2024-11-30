@@ -24,6 +24,7 @@
 
 - [Go Web Assembly 实战](./其他/Go%20Web%20Assembly/Go%20Web%20Assembly.md)
 - [100 行代码用 Go 实现一个可复用 Go Routine 池](./Go学习笔记/100%20行代码用%20Go%20实现一个可复用%20GoRoutine%20池/100%20行代码用%20Go%20实现一个可复用%20GoRoutine%20池.md)
+- [利用 Selenium 导出 Grafana 整个仪表盘为图片](./其他/利用%20Selenium%20导出%20Grafana%20整个仪表盘为图片/Grafana_Export_Dashboard_To_Img.md)
 
 #### 图解算法系列
 
